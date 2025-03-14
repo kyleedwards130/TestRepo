@@ -1,0 +1,22 @@
+from bs4 import BeautifulSoup
+import requests
+url = 'http://www.ibm.com'
+data = requests.get(url).text
+soup = BeautifulSoup(data,'html.parser')
+for link in soup.find_all('a'):
+    print(link.get('href'))
+
+for row in table.find_all('tr'):
+    cols = row.find_all('td')
+    color_name = cols[2].getText()
+    color_code = cols[3].getText()
+    print("{}--->{}".format(color_name,color_code))
+
+import pandas as pd
+tables = pd.read_html(url) # Also gets tables from website (much simpler)
+df = tables[0]
+# df.columns
+new_header = df.iloc[0]
+df = df[1:]
+df.columns = new_header
+# print(df.head().to_string())
