@@ -1,0 +1,24 @@
+import os
+downloads = 'C:\\Users\\edwards1775\\Downloads'
+os.chdir(downloads)
+
+import pandas as pd
+df = pd.read_csv('survey-data.csv')
+# print(df.head())
+
+###### Handle missing data ######
+
+def replace_missing_values(df):
+    for column in df.columns:
+        if df[column].dtype == 'object':
+            # Replace missing values with mode for non-numerical columns
+            mode_value = df[column].mode()[0]
+            df.fillna({column:mode_value},inplace=True)
+        else:
+            # Replace missing values with median number
+            median_value = df[column].median()
+            df.fillna({column:median_value},inplace=True)
+    return df
+
+df = replace_missing_values(df)
+print(df.head().to_string())

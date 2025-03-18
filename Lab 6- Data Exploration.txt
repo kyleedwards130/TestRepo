@@ -1,0 +1,144 @@
+import os
+downloads = 'C:\\Users\\edwards1775\\Downloads'
+os.chdir(downloads)
+
+import pandas as pd
+import numpy as np
+import statistics
+mean = statistics.mean
+
+# df = pd.read_csv('survey_data.csv')
+df = pd.read_csv('survey-data-with-duplicate.csv')
+# print(df.dtypes.to_string())
+
+# Get numbers for age ranges and find center of each age range
+age_responses = list(df['Age'])
+new_age = []
+for age in age_responses:
+    if age == 'Prefer not to say':
+        new_age.append(np.nan)
+    if 'Under' in age:
+        age = age.split(' ')
+        new_age.append(int(age[1])-1)
+    if '-' in age:
+        age = age.split(' ')
+        low_age, high_age = age[0].split('-')
+        low_age = int(low_age)
+        high_age = int(high_age)
+        new_age.append(mean([low_age,high_age]))
+    if 'or older' in age:
+        new_age.append(65)
+# Add center of range to dataframe and place column next to Age column
+df['AgeAnalysis'] = new_age
+column_to_move = 'AgeAnalysis'
+cols = list(df.columns)
+cols.insert(3,cols.pop(cols.index(column_to_move)))
+df = df[cols]
+
+# Get set of age groups and find total number in each group
+age_groups = list(set(df['Age']))
+col = ['AgeGroup','Total']
+age_count = {header: [] for header in col}
+for age in age_groups:
+    test_frame = df[df['Age'] == age]
+    age_count['AgeGroup'].append(age)
+    age_count['Total'].append(len(test_frame))
+
+# Print average and median age for the entire dataset
+print(f'Average Age: {df["AgeAnalysis"].mean()}')
+print(f'Median Age: {round(df["AgeAnalysis"].median())}')
+
+# Display total number in each age group
+age_frame = pd.DataFrame(age_count)
+print(age_frame.to_string())
+
+# Create and display a bar graph showing the distribution of ages in the dataset
+import matplotlib.pyplot as plt
+import seaborn as sns
+order = ['Prefer not to say',
+         'Under 18 years old',
+         '18-24 years old',
+         '25-34 years old',
+         '35-44 years old',
+         '45-54 years old',
+         '55-64 years old',
+         '65 years or older']
+# sns.barplot(age_frame,x='AgeGroup',y='Total',order=order)
+# plt.title('Total Number of Programmers by Age Group')
+# # plt.grid(True)
+# plt.show()
+
+# Find total number of countries represented in dataset
+countries = list(set(df['Country']))
+countries.remove(np.nan)
+print(f'\nTotal Number of Countries Represented: {len(countries)}')
+
+# Find total number of duplicate rows
+duplicate_count = df[df.duplicated(keep=False)]
+print(duplicate_count.head().to_string())
+print(f'Total Duplicate Rows: {len(duplicate_count)}')
+
+# Find duplicate rows based on selected column names
+search_cols = ['MainBranch','Employment','RemoteWork']
+duplicates = df[df.duplicated(subset=search_cols,keep=False)]
+
+# Analyze which columns frequently contain identical values within duplicate rows
+identical_cols = duplicates.apply(lambda x: x.nunique() == 1, axis=0)
+print(f'\nColumns with Identical Values in Duplicates: ')
+print(identical_cols.to_string())
+
+# Analyze the characteristics of rows that are duplicates based on a subset of columns
+subset_duplicates = df[df.duplicated(subset=search_cols,keep=False)]
+identical_value_counts = subset_duplicates.apply(lambda x: x.value_counts().max(),axis=0).nlargest(10)
+print("\nFrequency of identical values in other columns (Top 10):")
+print(identical_value_counts.to_string())
+identical_value_counts = subset_duplicates.apply(lambda x: x.value_counts().max(),axis=0).nsmallest(10)
+print("\nFrequency of identical values in other columns (Bottom 10):")
+print(identical_value_counts.to_string())
+
+# Distribution of duplicates by Country
+# fig, axes = plt.subplots(2,2,figsize=(12,7))
+# fig = fig.flatten()
+country_counts = duplicates['Country'].value_counts()
+country_counts = country_counts.to_frame(name='Total Duplicates')
+# axes[0] = country_counts.plot(kind='bar', title='Distribution of Duplicates by Country')
+# axes[0].set_xlabel('Country')
+# axes[0].set_ylabel('Number of Duplicates')
+country_counts.plot(kind='bar', title='Distribution of Duplicates by Country')
+plt.xlabel('Country')
+plt.ylabel('Number of Duplicates')
+plt.show()
+
+# Distribution of duplicates by Employment
+employment_counts = duplicates['Employment'].value_counts()
+employment_counts = employment_counts.to_frame(name='Total Duplicates')
+# axes[1] = employment_counts.plot(kind='bar', title='Distribution of Duplicates by Employment')
+# axes[1].set_xlabel('Employment')
+# axes[1].set_ylabel('Number of Duplicates')
+employment_counts.plot(kind='bar', title='Distribution of Duplicates by Employment')
+plt.xlabel('Employment')
+plt.ylabel('Number of Duplicates')
+plt.show()
+
+# Distribution of duplicates by Country
+country_counts.plot(kind='pie', y='Total Duplicates',title='Distribution of Duplicates by Country', autopct='%1.1f%%')
+plt.ylabel('')  # Hide y-label for better visualization
+plt.show()
+
+# Distribution of duplicates by Employment
+employment_counts.plot(kind='pie', y='Total Duplicates',title='Distribution of Duplicates by Employment', autopct='%1.1f%%')
+plt.ylabel('')  # Hide y-label for better visualization
+plt.show()
+
+# Based on analysis of the duplicates, it seems that the best column to determine uniqueness by would be the
+# ResponseId column. All other columns could/should potentially have some duplicates as many people could have the
+# same answers as each other. However, the ResponseId column should not have any duplicates since each ResponseId
+# should be unique to the individual taking the survey.
+
+# Remove rows containing duplicate ResponseId numbers
+start_df = len(df)
+new_df = df.drop_duplicates(subset='ResponseId')
+end_df = len(new_df)
+print(f'\nDifference Between DataFrames: {start_df - end_df}')
+
+new_df.to_csv('survey-data-with-duplicates-removed.csv',index=False)
