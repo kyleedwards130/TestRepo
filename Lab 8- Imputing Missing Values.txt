@@ -1,0 +1,54 @@
+import os
+downloads = 'C:\\Users\\edwards1775\\Downloads'
+os.chdir(downloads)
+
+import pandas as pd
+df = pd.read_csv('survey-data.csv')
+# print(df.head())
+
+# Describe data in DataFrame
+# print(df.describe(include='all'))
+
+# Identify missing values in all columns
+missing_values = df.isnull().sum() # Count number of missing values
+# print(missing_values.to_string())
+
+boolean_missing = df.isnull() # Show locations of all missing values
+# print(boolean_missing.to_string())
+
+# Visualize missing values with HeatMap
+import matplotlib.pyplot as plt
+import seaborn as sns
+plt.figure(figsize=(20,10))
+sns.heatmap(boolean_missing,cbar=False,cmap='viridis',yticklabels=False)
+plt.title('Heatmap of Missing Values')
+plt.xticks(rotation=90)
+plt.show()
+
+###### Handle missing data ######
+def replace_missing_values(df):
+    for column in df.columns:
+        if df[column].dtype == 'object':
+            # Replace missing values with mode for non-numerical columns
+            mode_value = df[column].mode()[0]
+            df.fillna({column:mode_value},inplace=True)
+        else:
+            # Replace missing values with median number
+            median_value = df[column].median()
+            df.fillna({column:median_value},inplace=True)
+    return df
+
+df = replace_missing_values(df)
+# print(df.head().to_string())
+
+boolean_missing = df.isnull() # Show locations of all missing values
+# print(boolean_missing.to_string())
+
+# Visualize missing values with HeatMap (Check if all values have been filled)
+plt.figure(figsize=(20,10))
+sns.heatmap(boolean_missing,cbar=False,cmap='viridis',yticklabels=False)
+plt.title('Heatmap of Missing Values')
+plt.xticks(rotation=90)
+plt.show()
+
+df.to_csv('Normalized-Survey-Data.csv')
