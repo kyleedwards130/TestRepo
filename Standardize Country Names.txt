@@ -1,13 +1,22 @@
+import os
+os.chdir('C:\\Users\\edwards1775\\Downloads')
+
+import pandas as pd
+df = pd.read_csv('FilledNan-Survey-Data.csv')
+
 import pycountry
+
+
 def standardize_country(name):
     try:
         return pycountry.countries.lookup(name).name
     except LookupError:
         return name  # Keep original if no match is found
-# df['Country'] = df['Country'].apply(standardize_country)
 
-countries = list(set(df['Country']))
-for i,country in enumerate(stand_country):
+df['Country'] = df['Country'].apply(standardize_country)
+
+stand_country = list(df['Country'])
+for i, country in enumerate(stand_country):
     if country == "Korea, Democratic People's Republic of":
         stand_country[i] = 'North Korea'
     if country == 'Democratic Republic of the Congo' or country == 'Congo, Republic of the...':
@@ -17,25 +26,41 @@ for i,country in enumerate(stand_country):
     if country == 'Micronesia, Federated States of...':
         stand_country[i] = 'Micronesia'
     if country == 'Taiwan, Province of China':
-        stand_country[i] = 'Taiwan'y
+        stand_country[i] = 'Taiwan'
     if country == 'Tanzania, United Republic of':
         stand_country[i] = 'Tanzania'
     if country == 'Syrian Arab Republic':
-	stand_country[i] = 'Syria'
+        stand_country[i] = 'Syria'
     if country == 'Korea, Republic of' or country == 'Republic of Korea':
-	stand_country[i] = 'South Korea'
+        stand_country[i] = 'South Korea'
     if country == 'Iran, Islamic Republic of...':
-	stand_country[i] = 'Iran'
-    if country == 'Hong Kong (S.A.R.):
-	stand_country[i] = 'Hong Kong'
-    if country == 'Lao People's Democratic Republic':
-	stand_country[i] = 'Laos'
+        stand_country[i] = 'Iran'
+    if country == 'Hong Kong (S.A.R.)':
+        stand_country[i] = 'Hong Kong'
+    if country == "Lao People's Democratic Republic":
+        stand_country[i] = 'Laos'
     if country == 'Libyan Arab Jamahiriya':
-	stand_country[i] = 'Libya'
+        stand_country[i] = 'Libya'
     if country == 'Moldova, Republic of':
-	stand_country[i] = 'Moldova'
+        stand_country[i] = 'Moldova'
     if country == 'Venezuela, Bolivarian Republic of...':
-	stand_country[i] = 'Venezuela'
+        stand_country[i] = 'Venezuela'
+    if country == "Côte d'Ivoire":
+        stand_country[i] = 'Ivory Coast'
+    if country == 'Bolivia, Plurinational State of':
+        stand_country[i] = 'Bolivia'
+    if country == 'Bosnia and Herzegovina':
+        stand_country[i] = 'Bosnia'
+    if country == 'Antigua and Barbuda':
+        stand_country[i] = 'Antigua'
+    if country == 'Brunei Darussalam':
+        stand_country[i] = 'Brunei'
+    if country == 'Trinidad and Tobago':
+        stand_country[i] = 'Trinidad'
+    if country == 'Saint Kitts and Nevis':
+        stand_country[i] = 'Saint Kitts'
 
-
-  
+df['Country'] = stand_country
+countries = sorted(list(set(df['Country'])))
+for c in countries:
+    print(c)
