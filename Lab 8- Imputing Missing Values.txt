@@ -51,4 +51,4 @@ plt.title('Heatmap of Missing Values')
 plt.xticks(rotation=90)
 plt.show()
 
-df.to_csv('FilledNan-Survey-Data.csv')
+df.to_csv('FilledNan-Survey-Data.csv',index=False)
