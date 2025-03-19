@@ -1,0 +1,39 @@
+import os
+downloads = 'C:\\Users\\edwards1775\\Downloads'
+os.chdir(downloads)
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# df = pd.read_csv('survey-data.csv')
+# df = df.dropna(subset=['ConvertedCompYearly'])
+df = pd.read_csv('FilledNan-Survey-Data.csv')
+print(df.head())
+
+# Normalize Data in ConvertedCompYearly column
+df['ConvertedCompYearly_MinMax'] = (df['ConvertedCompYearly'] - df['ConvertedCompYearly'].min())/(df['ConvertedCompYearly'].max()-df['ConvertedCompYearly'].min())
+print(df['ConvertedCompYearly_MinMax'].head())
+
+# Get Z-score for ConvertedCompYearly column
+from scipy.stats import zscore
+df['ConvertedCompYearly_Zscore'] = zscore(df['ConvertedCompYearly'])
+print(df['ConvertedCompYearly_Zscore'].head())
+print(df['ConvertedCompYearly'].max())
+print(df['ConvertedCompYearly'].min())
+
+# Display histograms for 'ConvertedCompYearly', 'ConvertedCompYearly_Zscore', 'ConvertedCompYearly_MinMax
+import seaborn as sns
+fig,axes = plt.subplots(2,2,figsize=(12,10))
+num_bins = 1000
+axes1 = sns.histplot(df,x='ConvertedCompYearly',bins=num_bins,ax=axes[0,0])
+axes1.set_title('ConvertedCompYearly')
+# plt.show()
+# num_bins = 100
+axes2 = sns.histplot(df['ConvertedCompYearly_MinMax'],bins=num_bins,ax=axes[0,1])
+axes2.set_title('Normalized ConvertedCompYearly')
+# plt.show()
+
+axes3 = sns.histplot(df['ConvertedCompYearly_Zscore'],bins=num_bins,ax=axes[1,0])
+axes3.set_title('Zscore ConvertedCompYearly')
+plt.tight_layout()
+plt.show()
