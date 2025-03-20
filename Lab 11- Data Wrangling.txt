@@ -1,0 +1,110 @@
+import os
+os.chdir('C:\\Users\\edwards1775\\Downloads')
+
+import pandas as pd
+df = pd.read_csv('FilledNan-Survey-Data.csv')
+
+import pycountry
+
+# Function to standardize country names
+def standardize_country(name):
+    try:
+        return pycountry.countries.lookup(name).name
+    except LookupError:
+        return name  # Keep original if no match is found
+
+df['Country'] = df['Country'].apply(standardize_country) # Standardize country names
+
+# Clean up names of countries missed by standardize_country() function
+stand_country = list(df['Country'])
+for i, country in enumerate(stand_country):
+    if country == "Korea, Democratic People's Republic of":
+        stand_country[i] = 'North Korea'
+    if country == 'Democratic Republic of the Congo' or country == 'Congo, Republic of the...':
+        stand_country[i] = 'Congo'
+    if country == 'Russian Federation':
+        stand_country[i] = 'Russia'
+    if country == 'Micronesia, Federated States of...':
+        stand_country[i] = 'Micronesia'
+    if country == 'Taiwan, Province of China':
+        stand_country[i] = 'Taiwan'
+    if country == 'Tanzania, United Republic of':
+        stand_country[i] = 'Tanzania'
+    if country == 'Syrian Arab Republic':
+        stand_country[i] = 'Syria'
+    if country == 'Korea, Republic of' or country == 'Republic of Korea':
+        stand_country[i] = 'South Korea'
+    if country == 'Iran, Islamic Republic of...':
+        stand_country[i] = 'Iran'
+    if country == 'Hong Kong (S.A.R.)':
+        stand_country[i] = 'Hong Kong'
+    if country == "Lao People's Democratic Republic":
+        stand_country[i] = 'Laos'
+    if country == 'Libyan Arab Jamahiriya':
+        stand_country[i] = 'Libya'
+    if country == 'Moldova, Republic of':
+        stand_country[i] = 'Moldova'
+    if country == 'Venezuela, Bolivarian Republic of...':
+        stand_country[i] = 'Venezuela'
+    if country == "Côte d'Ivoire":
+        stand_country[i] = 'Ivory Coast'
+    if country == 'Bolivia, Plurinational State of':
+        stand_country[i] = 'Bolivia'
+    if country == 'Bosnia and Herzegovina':
+        stand_country[i] = 'Bosnia'
+    if country == 'Antigua and Barbuda':
+        stand_country[i] = 'Antigua'
+    if country == 'Brunei Darussalam':
+        stand_country[i] = 'Brunei'
+    if country == 'Trinidad and Tobago':
+        stand_country[i] = 'Trinidad'
+    if country == 'Saint Kitts and Nevis':
+        stand_country[i] = 'Saint Kitts'
+
+# Display set of countries to make sure countries appear in correct format
+df['Country'] = stand_country
+countries = sorted(list(set(df['Country'])))
+# for c in countries:
+#     print(c)
+
+# Dictionary of ed levels in data with standardized forms
+edu_dict = {'Secondary school (e.g. American high school, German Realschule or Gymnasium, etc.)':'Secondary school',
+            'Master’s degree (M.A., M.S., M.Eng., MBA, etc.)':"Master's degree",
+            'Associate degree (A.A., A.S., etc.)':'Associate degree',
+            'Something else':'Other',
+            "Bachelor’s degree (B.A., B.S., B.Eng., etc.)":"Bachelor's degree",
+            "Primary/elementary school":"Primary school",
+            "Some college/university study without earning a degree":"Some college",
+            "Professional degree (JD, MD, Ph.D, Ed.D, etc.)":"Professional degree"}
+
+# Replace original entry with standardized entry
+ed_levels = list(df['EdLevel'])
+stand_levels = []
+for level in ed_levels:
+    stand_levels.append(edu_dict[level])
+
+# Display set of standardized levels to confirm levels were standardized as expected
+for level in list(set(stand_levels)):
+    print(level)
+df['EdLevel'] = stand_levels # replace original column with standardized list of education levels
+
+### One-Hot Encoding of Employment Values ###
+# Get individual employment categories
+split_list = []
+total_len = len(df)
+employment = list(df['Employment'])
+for e in employment:
+    new_list = e.split(';')
+    split_list = split_list + new_list
+    split_list = sorted(list(set(split_list)))
+    
+# Create empty dictionary with categories as keys
+employed_dict = {}
+for s in split_list:
+    employed_dict[s] = []
+
+# Convert dictionary to DataFrame and combine with original survey data
+employment_frame = pd.DataFrame(data=employed_dict)
+# print(len(employment_frame['Retired']))
+data = pd.concat([df,employment_frame],axis=0)
+# print(data[split_list].head().to_string())
