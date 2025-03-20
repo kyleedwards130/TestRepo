@@ -1,0 +1,11 @@
+total_len = len(df)
+emp_dict.keys()
+dict_keys(['Retired', 'Employed, part-time', 'Not employed, but looking for work', 'Student, full-time', 'Independent contractor, freelancer, or self-employed', 'Employed, full-time', 'Not employed, and not looking for work', 'Student, part-time', 'I prefer not to say'])
+list(emp_dict.keys())
+['Retired', 'Employed, part-time', 'Not employed, but looking for work', 'Student, full-time', 'Independent contractor, freelancer, or self-employed', 'Employed, full-time', 'Not employed, and not looking for work', 'Student, part-time', 'I prefer not to say']
+categories = list(emp_dict.keys())
+for category in categories:
+    i = 0
+    while i < total_len:
+        emp_dict[category].append(0)
+        i = i + 1
