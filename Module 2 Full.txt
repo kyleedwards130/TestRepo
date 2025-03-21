@@ -1,0 +1,239 @@
+########## Capstone Course: Module 2 ##############
+#### Task 1- Load the Dataset
+# Import modules, change directory to downloads folder
+import datetime
+start_time = datetime.datetime.now()
+import os
+import getpass
+user_name = getpass.getuser()
+os.chdir(f'C:\\Users\\{user_name}\\Downloads')
+
+import pandas as pd
+import numpy as np
+import statistics
+mean = statistics.mean
+median = statistics.median
+
+# Load the Stack Overflow survey data
+dataset_url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/n01PQ9pSmiRX6520flujwQ/survey-data.csv"
+df = pd.read_csv(dataset_url)
+
+# Display the first few rows
+print(df.head())
+print('\n')
+
+#### Task 2- Explore the Dataset
+## Task 2.1- Summarize dataset by displaying the column data types, counts, and missing values
+print('\nData Types')
+print(df.dtypes.to_string())
+
+print('\nMissing Values')
+missing_values = df.isnull().sum()
+print(missing_values.to_string())
+
+## Task 2.2- Generate basic statistics for numerical columns
+print('\nData Description')
+print(df.describe().to_string())
+
+# Get numbers for age ranges and find center of each age range
+age_responses = list(df['Age'])
+new_age = []
+for age in age_responses:
+    if age == 'Prefer not to say':
+        new_age.append(np.nan)
+    if 'Under' in age:
+        age = age.split(' ')
+        new_age.append(int(age[1])-1)
+    if '-' in age:
+        age = age.split(' ')
+        low_age, high_age = age[0].split('-')
+        low_age = int(low_age)
+        high_age = int(high_age)
+        new_age.append(mean([low_age,high_age]))
+    if 'or older' in age:
+        new_age.append(65)
+
+# Add center of range to dataframe and place column next to Age column
+df['AgeAnalysis'] = new_age
+column_to_move = 'AgeAnalysis'
+cols = list(df.columns)
+cols.insert(3,cols.pop(cols.index(column_to_move)))
+df = df[cols]
+
+# Get set of age groups and find total number in each group
+age_groups = list(set(df['Age']))
+col = ['AgeGroup','Total']
+age_count = {header: [] for header in col}
+for age in age_groups:
+    test_frame = df[df['Age'] == age]
+    age_count['AgeGroup'].append(age)
+    age_count['Total'].append(len(test_frame))
+
+# Print average and median age for the entire dataset
+print(f'Average Age: {df["AgeAnalysis"].mean()}')
+print(f'Median Age: {round(df["AgeAnalysis"].median())}\n')
+
+# Display total number in each age group
+print('Age Group Totals')
+age_frame = pd.DataFrame(age_count)
+print(age_frame.to_string())
+
+#### Task 5- Handling Missing Values
+## 5.1- Identify columns with the highest number of missing values
+print(f'Most Missing Values: {missing_values.max()}\n')
+
+## 5.2- Impute missing values in numerical columns with the mean or median
+## 5.3- Impute missing values in categorical columns with the most frequent value
+def replace_missing_values(df):
+    for column in df.columns:
+        if df[column].dtype == 'object':
+            # Replace missing values with mode for non-numerical columns
+            mode_value = df[column].mode()[0]
+            df.fillna({column:mode_value},inplace=True)
+        else:
+            # Replace missing values with median number
+            median_value = df[column].median()
+            df.fillna({column:median_value},inplace=True)
+    return df
+
+df = replace_missing_values(df)
+
+#### Task 3- Identifying and Removing Inconsistencies
+## 3.2- Standardize entries in columns like Country or EdLevel by mapping inconsistent values to a consistent format
+import pycountry
+
+# Function to standardize country names
+def standardize_country(name):
+    try:
+        return pycountry.countries.lookup(name).name
+    except LookupError:
+        return name  # Keep original if no match is found
+
+df['Country'] = df['Country'].apply(standardize_country) # Standardize country names
+
+# Clean up names of countries missed by standardize_country() function
+stand_country = list(df['Country'])
+for i, country in enumerate(stand_country):
+    if country == "Korea, Democratic People's Republic of":
+        stand_country[i] = 'North Korea'
+    if country == 'Democratic Republic of the Congo' or country == 'Congo, Republic of the...':
+        stand_country[i] = 'Congo'
+    if country == 'Russian Federation':
+        stand_country[i] = 'Russia'
+    if country == 'Micronesia, Federated States of...':
+        stand_country[i] = 'Micronesia'
+    if country == 'Taiwan, Province of China':
+        stand_country[i] = 'Taiwan'
+    if country == 'Tanzania, United Republic of':
+        stand_country[i] = 'Tanzania'
+    if country == 'Syrian Arab Republic':
+        stand_country[i] = 'Syria'
+    if country == 'Korea, Republic of' or country == 'Republic of Korea':
+        stand_country[i] = 'South Korea'
+    if country == 'Iran, Islamic Republic of...':
+        stand_country[i] = 'Iran'
+    if country == 'Hong Kong (S.A.R.)':
+        stand_country[i] = 'Hong Kong'
+    if country == "Lao People's Democratic Republic":
+        stand_country[i] = 'Laos'
+    if country == 'Libyan Arab Jamahiriya':
+        stand_country[i] = 'Libya'
+    if country == 'Moldova, Republic of':
+        stand_country[i] = 'Moldova'
+    if country == 'Venezuela, Bolivarian Republic of...':
+        stand_country[i] = 'Venezuela'
+    if country == "Côte d'Ivoire":
+        stand_country[i] = 'Ivory Coast'
+    if country == 'Bolivia, Plurinational State of':
+        stand_country[i] = 'Bolivia'
+    if country == 'Bosnia and Herzegovina':
+        stand_country[i] = 'Bosnia'
+    if country == 'Antigua and Barbuda':
+        stand_country[i] = 'Antigua'
+    if country == 'Brunei Darussalam':
+        stand_country[i] = 'Brunei'
+    if country == 'Trinidad and Tobago':
+        stand_country[i] = 'Trinidad'
+    if country == 'Saint Kitts and Nevis':
+        stand_country[i] = 'Saint Kitts'
+
+# Display set of countries to make sure countries appear in correct format
+df['Country'] = stand_country
+countries = sorted(list(set(df['Country'])))
+# for c in countries:
+#     print(c)
+
+# Dictionary of ed levels in data with standardized forms
+edu_dict = {'Secondary school (e.g. American high school, German Realschule or Gymnasium, etc.)':'Secondary school',
+            'Master’s degree (M.A., M.S., M.Eng., MBA, etc.)':"Master's degree",
+            'Associate degree (A.A., A.S., etc.)':'Associate degree',
+            'Something else':'Other',
+            "Bachelor’s degree (B.A., B.S., B.Eng., etc.)":"Bachelor's degree",
+            "Primary/elementary school":"Primary school",
+            "Some college/university study without earning a degree":"Some college",
+            "Professional degree (JD, MD, Ph.D, Ed.D, etc.)":"Professional degree"}
+
+# Replace original entry with standardized entry
+ed_levels = list(df['EdLevel'])
+stand_levels = []
+for level in ed_levels:
+    stand_levels.append(edu_dict[level])
+
+# Display set of standardized levels to confirm levels were standardized as expected
+for level in list(set(stand_levels)):
+    print(level)
+df['EdLevel'] = stand_levels # replace original column with standardized list of education levels
+
+#### TASK 4- ENCODING CATEGORICAL VARIABLES
+## 4.1- Encode the employment column using one-hot encoding
+# Get individual employment categories
+split_list = []
+total_len = len(df)
+employment = list(df['Employment'])
+for e in employment:
+    new_list = e.split(';')
+    split_list = split_list + new_list
+    split_list = sorted(list(set(split_list)))
+
+# Create empty dictionary with categories as keys
+employed_dict = {}
+for s in split_list:
+    employed_dict[s] = []
+
+# Convert dictionary to DataFrame and combine with original survey data
+employment_frame = pd.DataFrame(data=employed_dict)
+# print(len(employment_frame['Retired']))
+df = pd.concat([df,employment_frame],axis=0)
+print(df[split_list].head().to_string())
+print('\n')
+
+import warnings
+warnings.filterwarnings('ignore')
+i = 0
+while i < total_len:
+    emp_response = df['Employment'].iloc[i]
+    x = 0
+    while x < len(split_list):
+        cur_col = split_list[x]
+        if cur_col in emp_response:
+            df[split_list[x]].iloc[i] = 1
+        else:
+            df[split_list[x]].iloc[i] = 0
+        x = x + 1
+    print(i) # To show user the program is running as run time is a bit lengthy (about 4 minutes for 64,0000 entries)
+    i = i + 1
+print(df[split_list].head(10).to_string())
+print('\n')
+
+#### TASK 6- FEATURE SCALING AND TRANSFORMATION
+## 6.1 Apply Min-Max Scaling to normalize the 'ConvertedCompYearly' column
+df['ConvertedCompYearly_MinMax'] = (df['ConvertedCompYearly'] - df['ConvertedCompYearly'].min())/(df['ConvertedCompYearly'].max()-df['ConvertedCompYearly'].min())
+print(df['ConvertedCompYearly_MinMax'].head())
+print('\n')
+
+## 6.2- Log-transform the ConvertedCompYearly column to reduce skewness
+df['ConvertedCompYearly-LogTransform'] = np.log(df['ConvertedCompYearly'])
+print(df['ConvertedCompYearly-LogTransform'].head())
+df.to_csv('Module 2 Wrangled Data.csv',index=False)
+end_time = datetime.datetime.now()
+print(f'Elapsed Time: {end_time-start_time}\n')
