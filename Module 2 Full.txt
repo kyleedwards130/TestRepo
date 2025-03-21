@@ -209,6 +209,8 @@ print('\n')
 
 import warnings
 warnings.filterwarnings('ignore')
+import time
+import sys
 i = 0
 while i < total_len:
     emp_response = df['Employment'].iloc[i]
@@ -220,7 +222,10 @@ while i < total_len:
         else:
             df[split_list[x]].iloc[i] = 0
         x = x + 1
-    print(i) # To show user the program is running as run time is a bit lengthy (about 4 minutes for 64,0000 entries)
+    # To show user the program is running as run time is a bit lengthy (about 4 minutes for 64,0000 entries)
+    sys.stdout.write(f'\rRows Processed: {i}') # To show user the program is running as run time is a bit lengthy (about 4 minutes for 64,0000 entries)
+    sys.stdout.flush()
+    time.sleep(0.001)
     i = i + 1
 print(df[split_list].head(10).to_string())
 print('\n')
